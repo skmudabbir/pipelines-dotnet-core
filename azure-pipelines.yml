@@ -15,3 +15,24 @@ variables:
 steps:
 - script: dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
+
+  # 📦 Step 2: Publish the project (output ready to be zipped)
+- script: dotnet publish --configuration $(buildConfiguration) --output publish_output
+  displayName: 'Publish'
+
+  # 📁 Step 3: Zip the published output
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: 'publish_output'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+    replaceExistingArchive: true
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'Azure subscription 1(b49cdaa8-42a7-4443-af84-cc559218f8e3)'
+    appType: 'webApp'
+    appName: 'syedweb'
+    package: '$(Build.ArtifactStagingDirectory)/app.zip'
+    deploymentMethod: 'auto'
